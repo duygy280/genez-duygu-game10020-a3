@@ -32,6 +32,8 @@ public class StateMachineSimple : MonoBehaviour
 
     bool viewEnabled = false;
     bool canSeePlayer = false;
+    bool reachedLastPosition = false;
+    Vector3 lastKnownPlayerPosition;
 
     bool soundHeard = false;
     Vector3 soundLocation = Vector3.zero;
@@ -117,24 +119,61 @@ public class StateMachineSimple : MonoBehaviour
     }
     void Search()
     {
-        agent.SetDestination(transform.position + transform.forward + transform.right);
+        //first go to the last known player position
+        if (!reachedLastPosition)
+        {
+            agent.SetDestination(lastKnownPlayerPosition);
+
+            float distance = Vector3.Distance(transform.position, lastKnownPlayerPosition);
+
+            if (distance < 1f)
+            {
+                reachedLastPosition = true;
+            }
+        }
+        else
+        {
+            //after reaching start random search
+            if (!agent.hasPath || agent.remainingDistance < 0.5f)
+            {
+                Vector3 randomDirection = Random.insideUnitSphere * 5f;
+                randomDirection += transform.position;
+
+                if (NavMesh.SamplePosition(randomDirection, out NavMeshHit hit, 5f, NavMesh.AllAreas))
+                {
+                    agent.SetDestination(hit.position);
+                }
+            }
+        }
+
+        //check search duration
         float elapsedSearchTime = Time.time - searchTime;
+
         if (elapsedSearchTime >= searchThreshold)
         {
             EnterPatrol();
         }
+
         canSeePlayer = InViewCone();
+
         if (canSeePlayer)
         {
             state = State.Chase;
         }
+
         if (soundHeard)
         {
             EnterInvestigate();
         }
     }
+
+
     void Chase()
     {
+        //when the AI spots and loses sight of a player, instead of randomly wandering around it goes to the last place the player was seen
+        lastKnownPlayerPosition = character.transform.position;
+        reachedLastPosition = false;
+
         agent.SetDestination(character.transform.position);
         canSeePlayer = InViewCone();
         if (!canSeePlayer)
