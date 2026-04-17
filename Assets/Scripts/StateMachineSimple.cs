@@ -11,6 +11,7 @@ public class StateMachineSimple : MonoBehaviour
     [Header("Scene References")]
     public GameObject character;
     public Transform[] waypoints;
+    public GameManager gameManager;
     [Header("Config Values")]
     public float idleThreshold = 1.0f;
     public float waypointThreshold = 0.5f;
@@ -175,6 +176,13 @@ public class StateMachineSimple : MonoBehaviour
         reachedLastPosition = false;
 
         agent.SetDestination(character.transform.position);
+        //catch condition
+        float distanceToPlayer = Vector3.Distance(transform.position, character.transform.position);
+
+        if(distanceToPlayer < 1.5f)
+        {
+            gameManager.GameOver();
+        }
         canSeePlayer = InViewCone();
         if (!canSeePlayer)
         {
