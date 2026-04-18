@@ -6,11 +6,9 @@ using UnityEngine.InputSystem;
 public class Character : MonoBehaviour
 {
     public float moveSpeed = 5.0f;
-    public float gravity = -9.81f;
 
     CharacterController controller;
     PlayerInput playerInput;
-    Vector3 velocity;
 
     void Awake()
     {
@@ -18,34 +16,23 @@ public class Character : MonoBehaviour
         playerInput = GetComponent<PlayerInput>();
     }
 
-    public void Update()
+    void Update()
     {
         PlayerMotion();
     }
+
     void PlayerMotion()
     {
-        if (controller.isGrounded && velocity.y < 0)
-        {
-            velocity.y = -2f;
-        }
-        //the other option is using input action reference
-        //whic uses a direct reference to the move action
-        //this uses "magic strings"!
         Vector2 moveDirection = playerInput.currentActionMap["Move"].ReadValue<Vector2>();
-        Vector3 move = Vector3.right * moveDirection.x + Vector3.forward * moveDirection.y;
-        Vector3 moveVelocity = move * moveSpeed;
 
-        velocity.y += gravity * Time.deltaTime;
+        Vector3 move = new Vector3(moveDirection.x, 0, moveDirection.y);
 
-        moveVelocity.y = velocity.y;
+        controller.Move(move * moveSpeed * Time.deltaTime);
+        controller.Move(Vector3.down * 2f * Time.deltaTime);
 
-        controller.Move(moveVelocity * Time.deltaTime);
-
-
-        Vector3 horizontalVelocity = new Vector3(moveVelocity.x, 0f, moveVelocity.z);
-        if (horizontalVelocity.sqrMagnitude > 0.001f)
+        if (move.sqrMagnitude > 0.01f)
         {
-            Quaternion targetRotation = Quaternion.LookRotation(horizontalVelocity);
+            Quaternion targetRotation = Quaternion.LookRotation(move);
             transform.rotation = Quaternion.Slerp(
                 transform.rotation,
                 targetRotation,
@@ -53,4 +40,5 @@ public class Character : MonoBehaviour
             );
         }
     }
+
 }
