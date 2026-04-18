@@ -20,9 +20,10 @@ public class StateMachineSimple : MonoBehaviour
     public float viewRadius = 10f;
     public float viewAngle = 60f;
     public float investigateDistance = 1.5f;
-    
-    
 
+
+    float reactionDelay = 0.5f;
+    float lastSeenTime = -10f;
     float idleTime = 0.0f;
     State state;
     int waypointIndex = 0;
@@ -98,7 +99,15 @@ public class StateMachineSimple : MonoBehaviour
 
         viewEnabled = true;
         canSeePlayer = InViewCone();
-
+        if (canSeePlayer)
+        {
+            lastSeenTime = Time.time;
+        }
+        //wait for short delay before chasing
+        if (Time.time - lastSeenTime < reactionDelay)
+        {
+            state = State.Chase;
+        }
         float distance = Vector3.Distance(transform.position, waypoint);
         if (distance < waypointThreshold)
         {
@@ -107,10 +116,10 @@ public class StateMachineSimple : MonoBehaviour
             state = State.Idle;
             idleTime = Time.time;
         }
-        if (canSeePlayer)
-        {
-            state = State.Chase;
-        }
+       // if (canSeePlayer)
+        //{
+          //  state = State.Chase;
+        //}
         if (soundHeard)
         {
             EnterInvestigate();

@@ -12,6 +12,7 @@ public class GameManager : MonoBehaviour
     public GameObject restartButton;
 
     bool gameEnded = false;
+
     
 
     private void OnTriggerEnter(Collider other)
